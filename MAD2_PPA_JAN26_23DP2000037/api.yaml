@@ -1,0 +1,1307 @@
+openapi: 3.0.0
+info:
+  title: Placement Portal Application (PPA) API
+  description: |
+    Comprehensive REST API for the Placement Portal Application v2.0
+    A system for managing campus recruitment involving institutes (Admin), companies, and students.
+    
+    **Authentication:** All endpoints require JWT token in Authorization header
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+    
+    **Base URL:** http://localhost:5000/api
+  version: 2.0.0
+  contact:
+    name: Student Developer
+    email: skpandey@onlinedegree.iitm.ac.in
+
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+  - url: https://api.placementportal.io/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User login and registration endpoints
+  - name: Admin
+    description: Admin dashboard and management endpoints
+  - name: Company
+    description: Company portal and drive management
+  - name: Student
+    description: Student dashboard and applications
+  - name: Jobs
+    description: Asynchronous background jobs
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Authenticate user and generate JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: john_doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secure_password_123
+              required:
+                - password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  role:
+                    type: string
+                    enum: [admin, student, company]
+                  username:
+                    type: string
+        '401':
+          description: Invalid credentials
+        '403':
+          description: Account suspended or blacklisted
+
+  /auth/register/student:
+    post:
+      tags:
+        - Authentication
+      summary: Student Registration
+      description: Register a new student account with profile details
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: john_doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                name:
+                  type: string
+                  example: John Doe
+                dob:
+                  type: string
+                  format: date
+                  example: "2000-05-15"
+                college:
+                  type: string
+                  example: IIT Madras
+                branch:
+                  type: string
+                  example: Computer Science
+                gpa:
+                  type: number
+                  format: float
+                  example: 8.5
+                year:
+                  type: integer
+                  enum: [1, 2, 3, 4]
+                address:
+                  type: string
+                  example: Chennai, Tamil Nadu
+                resume:
+                  type: string
+                  format: binary
+              required:
+                - username
+                - email
+                - password
+                - name
+                - college
+                - branch
+                - gpa
+                - year
+      responses:
+        '201':
+          description: Student registered successfully
+        '400':
+          description: Username or email already exists
+        '422':
+          description: Missing required fields
+
+  /auth/register/company:
+    post:
+      tags:
+        - Authentication
+      summary: Company Registration
+      description: Register a new company account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: acme_corp
+                email:
+                  type: string
+                  format: email
+                  example: hr@acmecorp.com
+                password:
+                  type: string
+                  format: password
+                name:
+                  type: string
+                  example: ACME Corporation
+                hr_contact:
+                  type: string
+                  example: +91-9876543210
+                website:
+                  type: string
+                  format: uri
+                  example: https://www.acmecorp.com
+                established_in:
+                  type: string
+                  example: "2010"
+                sector:
+                  type: string
+                  example: Technology
+              required:
+                - username
+                - email
+                - password
+                - name
+                - hr_contact
+      responses:
+        '201':
+          description: Company registered successfully
+        '400':
+          description: Username or email already exists
+
+  # Admin Endpoints
+  /admin/stats:
+    get:
+      tags:
+        - Admin
+      summary: Admin Dashboard Statistics
+      description: Get dashboard statistics including user counts, drives, and applications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  students:
+                    type: integer
+                  companies:
+                    type: integer
+                  active_drives:
+                    type: integer
+                  total_drives:
+                    type: integer
+                  pending_drives:
+                    type: integer
+                  total_applications:
+                    type: integer
+                  selected:
+                    type: integer
+
+  /admin/profile:
+    get:
+      tags:
+        - Admin
+      summary: Admin Profile
+      description: Get admin user profile information
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Admin profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+
+  /admin/chart-data:
+    get:
+      tags:
+        - Admin
+      summary: Application Status Chart Data
+      description: Get application distribution data for dashboard charts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Chart data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: object
+                    properties:
+                      labels:
+                        type: array
+                        items:
+                          type: string
+                      data:
+                        type: array
+                        items:
+                          type: integer
+
+  /admin/monthly-chart-data:
+    get:
+      tags:
+        - Admin
+      summary: Monthly Statistics
+      description: Get monthly placement statistics and trends
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Monthly statistics data
+
+  /admin/students:
+    get:
+      tags:
+        - Admin
+      summary: List All Students
+      description: Get list of all registered students with search capability
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          description: Search query for student name or email
+          schema:
+            type: string
+            example: john
+      responses:
+        '200':
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    username:
+                      type: string
+                    email:
+                      type: string
+                    name:
+                      type: string
+                    college:
+                      type: string
+                    gpa:
+                      type: number
+                    branch:
+                      type: string
+                    year:
+                      type: integer
+                    is_active:
+                      type: boolean
+                    is_blacklisted:
+                      type: boolean
+                    drives_applied:
+                      type: integer
+
+  /admin/companies:
+    get:
+      tags:
+        - Admin
+      summary: List All Companies
+      description: Get list of all registered companies with approval status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          description: Search query for company name
+          schema:
+            type: string
+            example: acme
+      responses:
+        '200':
+          description: List of companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    user_id:
+                      type: integer
+                    name:
+                      type: string
+                    hr_contact:
+                      type: string
+                    website:
+                      type: string
+                    sector:
+                      type: string
+                    status:
+                      type: string
+                      enum: [pending, approved, rejected]
+                    is_active:
+                      type: boolean
+                    is_blacklisted:
+                      type: boolean
+                    drives:
+                      type: integer
+
+  /admin/companies/{id}/approve:
+    post:
+      tags:
+        - Admin
+      summary: Approve/Reject Company
+      description: Approve or reject company registration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [approved, rejected]
+      responses:
+        '200':
+          description: Company approval updated
+
+  /admin/drives:
+    get:
+      tags:
+        - Admin
+      summary: List All Placement Drives
+      description: Get list of all placement drives created by companies
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          description: Search query for job title
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of drives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    job_title:
+                      type: string
+                    company_name:
+                      type: string
+                    status:
+                      type: string
+                      enum: [pending, approved, closed]
+                    deadline:
+                      type: string
+                      format: date-time
+                    applicants:
+                      type: integer
+                    created_at:
+                      type: string
+                      format: date-time
+
+  /admin/drives/{id}/approve:
+    post:
+      tags:
+        - Admin
+      summary: Approve/Reject Placement Drive
+      description: Approve or reject a placement drive created by company
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [approved, closed]
+      responses:
+        '200':
+          description: Drive approval updated
+
+  /admin/users/{id}/blacklist:
+    post:
+      tags:
+        - Admin
+      summary: Toggle User Blacklist
+      description: Blacklist or unblacklist a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Blacklist status updated
+
+  /admin/users/{id}/deactivate:
+    post:
+      tags:
+        - Admin
+      summary: Toggle User Activation
+      description: Deactivate or reactivate a user account
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User activation status updated
+
+  /admin/applications:
+    get:
+      tags:
+        - Admin
+      summary: View All Applications
+      description: Get all student applications with filters
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of applications
+
+  /admin/notifications:
+    get:
+      tags:
+        - Admin
+      summary: Get Admin Notifications
+      description: Get pending approvals and activities
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of notifications
+
+  /admin/export-csv:
+    post:
+      tags:
+        - Admin
+      summary: Export Data as CSV
+      description: Export all system data as CSV file
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: CSV file generated and download link provided
+
+  /admin/request-report:
+    post:
+      tags:
+        - Admin
+      summary: Request Monthly Report
+      description: Request generation of monthly placement activity report
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Report generation initiated
+
+  # Company Endpoints
+  /company/profile:
+    get:
+      tags:
+        - Company
+      summary: Get Company Profile
+      description: Get company profile and details
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Company profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  hr_contact:
+                    type: string
+                  website:
+                    type: string
+                  established_in:
+                    type: string
+                  sector:
+                    type: string
+                  approval_status:
+                    type: string
+
+  /company/stats:
+    get:
+      tags:
+        - Company
+      summary: Company Dashboard Statistics
+      description: Get company-specific statistics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Company statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  drives:
+                    type: integer
+                  applicants:
+                    type: integer
+                  selected:
+                    type: integer
+
+  /company/drives:
+    get:
+      tags:
+        - Company
+      summary: List Company Drives
+      description: Get all placement drives created by this company
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of company drives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    job_title:
+                      type: string
+                    job_description:
+                      type: string
+                    status:
+                      type: string
+                    deadline:
+                      type: string
+                      format: date-time
+                    eligibility_gpa:
+                      type: number
+                    eligibility_branch:
+                      type: string
+                    eligibility_year:
+                      type: integer
+                    applicants:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          student_id:
+                            type: integer
+                          student_name:
+                            type: string
+                          status:
+                            type: string
+                          applied_at:
+                            type: string
+                            format: date-time
+
+    post:
+      tags:
+        - Company
+      summary: Create Placement Drive
+      description: Create a new placement drive (requires admin approval)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_title:
+                  type: string
+                  example: Software Engineer
+                job_description:
+                  type: string
+                  example: Develop scalable web applications
+                eligibility_branch:
+                  type: string
+                  example: Computer Science
+                eligibility_gpa:
+                  type: number
+                  format: float
+                  example: 8.0
+                eligibility_year:
+                  type: integer
+                  example: 3
+                deadline:
+                  type: string
+                  format: date-time
+                  example: "2026-04-15T23:59:59Z"
+              required:
+                - job_title
+                - deadline
+      responses:
+        '201':
+          description: Placement drive created successfully
+        '403':
+          description: Company not approved yet
+
+  /company/drives/{id}:
+    put:
+      tags:
+        - Company
+      summary: Update Placement Drive
+      description: Update placement drive details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_title:
+                  type: string
+                job_description:
+                  type: string
+                eligibility_gpa:
+                  type: number
+                eligibility_branch:
+                  type: string
+                eligibility_year:
+                  type: integer
+      responses:
+        '200':
+          description: Drive updated successfully
+
+  /company/drives/{id}/close:
+    post:
+      tags:
+        - Company
+      summary: Close Placement Drive
+      description: Close a placement drive for applications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Drive closed successfully
+
+  /company/drives/{drive_id}/applicants:
+    get:
+      tags:
+        - Company
+      summary: Get Drive Applicants
+      description: Get list of students who applied for a specific drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of applicants
+
+  /company/applications/{app_id}/status:
+    post:
+      tags:
+        - Company
+      summary: Update Application Status
+      description: Update status of student application
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [applied, shortlisted, selected, rejected]
+      responses:
+        '200':
+          description: Application status updated
+
+  /company/history:
+    get:
+      tags:
+        - Company
+      summary: View Placement History
+      description: Get past closed drives and their results
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Placement history
+
+  /company/interviews:
+    get:
+      tags:
+        - Company
+      summary: List Interviews
+      description: Get all scheduled interviews for company
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of interviews
+
+    post:
+      tags:
+        - Company
+      summary: Schedule Interview
+      description: Schedule interview for a candidate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                application_id:
+                  type: integer
+                student_id:
+                  type: integer
+                scheduled_date:
+                  type: string
+                  format: date
+                  example: "2026-03-20"
+                scheduled_time:
+                  type: string
+                  format: time
+                  example: "14:00"
+                location:
+                  type: string
+                  example: Conference Room A
+                mode:
+                  type: string
+                  enum: [online, offline]
+      responses:
+        '201':
+          description: Interview scheduled successfully
+
+  /company/interviews/{interview_id}:
+    put:
+      tags:
+        - Company
+      summary: Update Interview
+      description: Update interview details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: interview_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduled_date:
+                  type: string
+                  format: date
+                scheduled_time:
+                  type: string
+                  format: time
+                location:
+                  type: string
+                mode:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Interview updated successfully
+
+  /company/interviews/{interview_id}/result:
+    post:
+      tags:
+        - Company
+      summary: Record Interview Result
+      description: Record interview result (pass/fail)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: interview_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result:
+                  type: string
+                  enum: [pass, fail]
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Interview result recorded
+
+  /company/notifications:
+    get:
+      tags:
+        - Company
+      summary: Get Company Notifications
+      description: Get pending notifications for company
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of notifications
+
+  # Student Endpoints
+  /student/profile:
+    get:
+      tags:
+        - Student
+      summary: Get Student Profile
+      description: Get student profile details
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Student profile
+
+    put:
+      tags:
+        - Student
+      summary: Update Student Profile
+      description: Update student profile information
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                college:
+                  type: string
+                branch:
+                  type: string
+                gpa:
+                  type: number
+                year:
+                  type: integer
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+
+  /student/resume:
+    post:
+      tags:
+        - Student
+      summary: Upload Resume
+      description: Upload or update student resume
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                resume:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Resume uploaded successfully
+
+  /student/stats:
+    get:
+      tags:
+        - Student
+      summary: Student Dashboard Statistics
+      description: Get student dashboard statistics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Student statistics
+
+  /student/drives:
+    get:
+      tags:
+        - Student
+      summary: List Approved Drives
+      description: Get list of approved placement drives with eligibility filtering
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branch
+          in: query
+          description: Filter by branch
+          schema:
+            type: string
+        - name: min_gpa
+          in: query
+          description: Filter by minimum GPA
+          schema:
+            type: number
+        - name: year
+          in: query
+          description: Filter by year
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of available drives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    job_title:
+                      type: string
+                    job_description:
+                      type: string
+                    company_name:
+                      type: string
+                    deadline:
+                      type: string
+                      format: date-time
+                    eligibility_gpa:
+                      type: number
+                    eligibility_branch:
+                      type: string
+                    eligibility_year:
+                      type: integer
+                    already_applied:
+                      type: boolean
+
+  /student/apply/{drive_id}:
+    post:
+      tags:
+        - Student
+      summary: Apply to Placement Drive
+      description: Apply to a placement drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Application submitted successfully
+        '400':
+          description: Drive not open, already applied, or ineligible
+
+  /student/applications:
+    get:
+      tags:
+        - Student
+      summary: View Applications
+      description: Get all applications with current status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of applications
+
+  /student/interviews:
+    get:
+      tags:
+        - Student
+      summary: View Scheduled Interviews
+      description: Get all scheduled interviews for student
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of interviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    company_name:
+                      type: string
+                    job_title:
+                      type: string
+                    scheduled_date:
+                      type: string
+                      format: date
+                    scheduled_time:
+                      type: string
+                      format: time
+                    location:
+                      type: string
+                    mode:
+                      type: string
+                    result:
+                      type: string
+
+  /student/history:
+    get:
+      tags:
+        - Student
+      summary: View Placement History
+      description: Get complete placement history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Placement history
+
+  /student/notifications:
+    get:
+      tags:
+        - Student
+      summary: Get Student Notifications
+      description: Get all notifications for student
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of notifications
+
+  # Async Jobs
+  /jobs/export-csv:
+    post:
+      tags:
+        - Jobs
+      summary: Export Applications as CSV
+      description: Trigger async job to export student applications as CSV
+      security:
+        - bearerAuth: []
+      responses:
+        '202':
+          description: Export job triggered, processing in background
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter JWT token: Authorization: Bearer <token>'
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, student, company]
+        is_active:
+          type: boolean
+        is_blacklisted:
+          type: boolean
+
+    StudentProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+        college:
+          type: string
+        branch:
+          type: string
+        gpa:
+          type: number
+        year:
+          type: integer
+
+    CompanyProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+        hr_contact:
+          type: string
+        website:
+          type: string
+        approval_status:
+          type: string
+
+    PlacementDrive:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        job_title:
+          type: string
+        job_description:
+          type: string
+        deadline:
+          type: string
+          format: date-time
+        status:
+          type: string
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: integer
+        student_id:
+          type: integer
+        drive_id:
+          type: integer
+        status:
+          type: string
+        applied_at:
+          type: string
+          format: date-time
+
+    Interview:
+      type: object
+      properties:
+        id:
+          type: integer
+        application_id:
+          type: integer
+        scheduled_date:
+          type: string
+          format: date
+        scheduled_time:
+          type: string
+        result:
+          type: string
+          enum: [pending, pass, fail]

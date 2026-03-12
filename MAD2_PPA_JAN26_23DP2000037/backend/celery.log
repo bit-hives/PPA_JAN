@@ -1,0 +1,106 @@
+ 
+ -------------- celery@codespaces-36ab95 v5.6.2 (recovery)
+--- ***** ----- 
+-- ******* ---- Linux-6.8.0-1044-azure-x86_64-with-glibc2.39 2026-03-02 17:16:08
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         app:0x7b10f874cb00
+- ** ---------- .> transport:   redis://localhost:6379/0
+- ** ---------- .> results:     redis://localhost:6379/0
+- *** --- * --- .> concurrency: 2 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . tasks.export_admin_data_csv
+  . tasks.export_student_csv
+  . tasks.send_deadline_reminders
+  . tasks.send_monthly_report
+
+[2026-03-02 17:16:08,267: WARNING/MainProcess] /usr/local/python/3.12.1/lib/python3.12/site-packages/celery/app/utils.py:203: CDeprecationWarning: 
+    The 'CELERY_RESULT_BACKEND' setting is deprecated and scheduled for removal in
+    version 6.0.0. Use the result_backend instead
+
+  deprecated.warn(description=f'The {setting!r} setting',
+
+[2026-03-02 17:16:08,268: WARNING/MainProcess] Please run `celery upgrade settings path/to/settings.py` to avoid these warnings and to allow a smoother upgrade to Celery 6.0.
+[2026-03-02 17:16:08,516: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2026-03-02 17:16:08,530: INFO/MainProcess] mingle: searching for neighbors
+[2026-03-02 17:16:09,556: INFO/MainProcess] mingle: all alone
+[2026-03-02 17:16:09,572: INFO/MainProcess] celery@codespaces-36ab95 ready.
+[2026-03-02 17:16:09,575: INFO/MainProcess] Task tasks.export_admin_data_csv[5f5ce51e-4eb4-4103-8102-0d35e0752a57] received
+[2026-03-02 17:16:09,607: ERROR/ForkPoolWorker-1] Task tasks.export_admin_data_csv[5f5ce51e-4eb4-4103-8102-0d35e0752a57] raised unexpected: AttributeError("'NoneType' object has no attribute 'strftime'")
+Traceback (most recent call last):
+  File "/usr/local/python/3.12.1/lib/python3.12/site-packages/celery/app/trace.py", line 479, in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/codespaces-blank/root/backend/celery_worker.py", line 13, in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/codespaces-blank/root/backend/tasks.py", line 136, in export_admin_data_csv
+    app.applied_at.strftime('%Y-%m-%d'),
+    ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'strftime'
+[2026-03-02 17:16:28,421: INFO/MainProcess] Task tasks.export_admin_data_csv[3d9938a4-7526-4919-aa79-833545c06014] received
+[2026-03-02 17:16:28,435: ERROR/ForkPoolWorker-1] Task tasks.export_admin_data_csv[3d9938a4-7526-4919-aa79-833545c06014] raised unexpected: AttributeError("'NoneType' object has no attribute 'strftime'")
+Traceback (most recent call last):
+  File "/usr/local/python/3.12.1/lib/python3.12/site-packages/celery/app/trace.py", line 479, in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/codespaces-blank/root/backend/celery_worker.py", line 13, in __call__
+    return self.run(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/codespaces-blank/root/backend/tasks.py", line 136, in export_admin_data_csv
+    app.applied_at.strftime('%Y-%m-%d'),
+    ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'strftime'
+ 
+ -------------- celery@codespaces-36ab95 v5.6.2 (recovery)
+--- ***** ----- 
+-- ******* ---- Linux-6.8.0-1044-azure-x86_64-with-glibc2.39 2026-03-02 17:16:52
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         app:0x7b594611dfa0
+- ** ---------- .> transport:   redis://localhost:6379/0
+- ** ---------- .> results:     redis://localhost:6379/0
+- *** --- * --- .> concurrency: 2 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . tasks.export_admin_data_csv
+  . tasks.export_student_csv
+  . tasks.send_deadline_reminders
+  . tasks.send_monthly_report
+
+[2026-03-02 17:16:52,455: WARNING/MainProcess] /usr/local/python/3.12.1/lib/python3.12/site-packages/celery/app/utils.py:203: CDeprecationWarning: 
+    The 'CELERY_RESULT_BACKEND' setting is deprecated and scheduled for removal in
+    version 6.0.0. Use the result_backend instead
+
+  deprecated.warn(description=f'The {setting!r} setting',
+
+[2026-03-02 17:16:52,455: WARNING/MainProcess] Please run `celery upgrade settings path/to/settings.py` to avoid these warnings and to allow a smoother upgrade to Celery 6.0.
+[2026-03-02 17:16:52,690: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2026-03-02 17:16:52,705: INFO/MainProcess] mingle: searching for neighbors
+[2026-03-02 17:16:53,729: INFO/MainProcess] mingle: all alone
+[2026-03-02 17:16:53,740: INFO/MainProcess] celery@codespaces-36ab95 ready.
+[2026-03-02 17:17:35,149: INFO/MainProcess] Task tasks.export_admin_data_csv[cf969892-de64-45a0-94a1-17eedf098b5c] received
+[2026-03-02 17:17:35,182: INFO/ForkPoolWorker-1] Task tasks.export_admin_data_csv[cf969892-de64-45a0-94a1-17eedf098b5c] succeeded in 0.03114498500008267s: None
+[2026-03-02 17:17:57,925: INFO/MainProcess] Task tasks.send_monthly_report[359aca0e-51f3-4fab-92bc-e3026c35d895] received
+[2026-03-02 17:17:57,948: INFO/ForkPoolWorker-1] Task tasks.send_monthly_report[359aca0e-51f3-4fab-92bc-e3026c35d895] succeeded in 0.021002542000132962s: None
+[2026-03-02 17:22:54,446: INFO/MainProcess] Task tasks.send_monthly_report[504dc276-fb43-45c2-af04-d6c4d00e02a1] received
+[2026-03-02 17:22:54,463: INFO/ForkPoolWorker-1] Task tasks.send_monthly_report[504dc276-fb43-45c2-af04-d6c4d00e02a1] succeeded in 0.015233540999815887s: None
+[2026-03-02 17:32:34,537: INFO/MainProcess] Task tasks.export_student_csv[c36bba8b-6855-4245-9dac-2ff0750a0aba] received
+[2026-03-02 17:32:34,557: INFO/ForkPoolWorker-1] Task tasks.export_student_csv[c36bba8b-6855-4245-9dac-2ff0750a0aba] succeeded in 0.01858443700029966s: None
+[2026-03-02 18:18:00,132: INFO/MainProcess] Task tasks.export_student_csv[4d80113c-15f0-408d-bb38-7c383e231a07] received
+[2026-03-02 18:18:00,140: INFO/MainProcess] Task tasks.export_student_csv[95010c6b-9ead-4875-b4f3-32b1bafa7202] received
+[2026-03-02 18:18:00,163: INFO/ForkPoolWorker-1] Task tasks.export_student_csv[4d80113c-15f0-408d-bb38-7c383e231a07] succeeded in 0.0289454139992813s: None
+[2026-03-02 18:18:00,196: INFO/ForkPoolWorker-2] Task tasks.export_student_csv[95010c6b-9ead-4875-b4f3-32b1bafa7202] succeeded in 0.053169015999628755s: None
+[2026-03-02 18:26:10,417: INFO/MainProcess] Task tasks.export_student_csv[7b5f69d7-8af5-4787-9b41-444b8e4cfc42] received
+[2026-03-02 18:26:10,440: INFO/ForkPoolWorker-1] Task tasks.export_student_csv[7b5f69d7-8af5-4787-9b41-444b8e4cfc42] succeeded in 0.021030947999861382s: None
